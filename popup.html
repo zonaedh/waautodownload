@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 420px;
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      font-size: 13px;
+    }
+
+    .topbar {
+      background: #075e54;
+      color: white;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar h1 {
+      font-size: 15px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .running-indicator {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #25d366;
+    }
+
+    .running-dot {
+      width: 8px;
+      height: 8px;
+      background: #25d366;
+      border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .minimize-btn {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .tabs {
+      display: flex;
+      background: #128c7e;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 4px;
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 11px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab-btn.active {
+      color: white;
+      border-bottom: 3px solid #25d366;
+      font-weight: bold;
+    }
+
+    .panel {
+      display: none;
+      padding: 12px;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    label {
+      font-weight: bold;
+      color: #333;
+      display: block;
+      margin-bottom: 4px;
+      margin-top: 10px;
+    }
+
+    label:first-child {
+      margin-top: 0;
+    }
+
+    textarea,
+    input[type="text"],
+    input[type="number"],
+    input[type="time"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 7px 9px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 13px;
+      background: white;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .counter-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 6px 10px;
+    }
+
+    .counter-btn {
+      width: 30px;
+      height: 30px;
+      font-size: 18px;
+      background: #075e54;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .counter-btn:hover {
+      background: #064d45;
+    }
+
+    .counter-display {
+      flex: 1;
+      text-align: center;
+    }
+
+    .counter-display span {
+      font-size: 18px;
+      font-weight: bold;
+      color: #075e54;
+    }
+
+    .counter-display small {
+      display: block;
+      font-size: 10px;
+      color: #888;
+    }
+
+    .progress-wrap {
+      background: #ddd;
+      border-radius: 10px;
+      height: 10px;
+      margin: 8px 0;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: #25d366;
+      border-radius: 10px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    #status {
+      font-size: 12px;
+      color: #555;
+      text-align: center;
+      font-weight: bold;
+      min-height: 16px;
+      margin-bottom: 6px;
+    }
+
+    .trial-banner {
+      display: none;
+      background: #fff3cd;
+      color: #856404;
+      font-size: 11px;
+      text-align: center;
+      padding: 5px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      border: 1px solid #ffc107;
+      font-weight: bold;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .stat-box {
+      flex: 1;
+      background: white;
+      border-radius: 6px;
+      padding: 6px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    .stat-box .num {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .stat-box .lbl {
+      font-size: 10px;
+      color: #888;
+    }
+
+    .sent-color {
+      color: #25d366;
+    }
+
+    .fail-color {
+      color: #e53935;
+    }
+
+    .skip-color {
+      color: #fb8c00;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .btn-green {
+      background: #25d366;
+    }
+
+    .btn-green:hover {
+      background: #1ebe5d;
+    }
+
+    .btn-green:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    .btn-red {
+      background: #e53935;
+    }
+
+    .btn-red:hover {
+      background: #c62828;
+    }
+
+    .btn-blue {
+      background: #1976d2;
+    }
+
+    .btn-blue:hover {
+      background: #1565c0;
+    }
+
+    .btn-gray {
+      background: #757575;
+    }
+
+    .btn-gray:hover {
+      background: #616161;
+    }
+
+    #stopBtn {
+      display: none;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .history-table th {
+      background: #075e54;
+      color: white;
+      padding: 5px 8px;
+      text-align: left;
+    }
+
+    .history-table td {
+      padding: 5px 8px;
+      border-bottom: 1px solid #eee;
+      background: white;
+    }
+
+    .badge {
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .badge-sent {
+      background: #25d366;
+    }
+
+    .badge-failed {
+      background: #e53935;
+    }
+
+    .badge-skipped {
+      background: #fb8c00;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 7px 10px;
+      margin-bottom: 6px;
+    }
+
+    .list-item span {
+      flex: 1;
+      font-size: 12px;
+    }
+
+    .list-item-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    .icon-btn {
+      background: none;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      padding: 2px 6px;
+      color: #333;
+    }
+
+    .icon-btn:hover {
+      background: #f0f0f0;
+    }
+
+    .schedule-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .schedule-row>div {
+      flex: 1;
+    }
+
+    #minimized {
+      display: none;
+      width: 56px;
+      height: 56px;
+      background: #25d366;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      margin: 8px auto;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 10px;
+      color: #aaa;
+      padding: 8px;
+      border-top: 1px solid #ddd;
+    }
+
+    footer a {
+      color: #075e54;
+      text-decoration: none;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: bold;
+      color: #075e54;
+      margin: 10px 0 6px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 4px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="minimized" title="Open WhatsApp Bulk Sender">WA<br>Sender</div>
+
+  <div id="dashboard">
+
+    <div class="topbar">
+      <h1>WhatsApp Bulk Sender v2</h1>
+      <div class="topbar-right">
+        <div class="running-indicator" id="runningIndicator">
+          <div class="running-dot"></div>
+          Running...
+        </div>
+        <button class="minimize-btn" id="minimizeBtn">Minimize</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="send">Send</button>
+      <button class="tab-btn" data-tab="contacts">Contacts</button>
+      <button class="tab-btn" data-tab="templates">Templates</button>
+      <button class="tab-btn" data-tab="history">History</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
+    </div>
+
+    <!-- SEND PANEL -->
+    <div class="panel active" id="tab-send">
+      <label>Phone Numbers</label>
+      <div style="display:flex;gap:6px;margin-bottom:4px;">
+        <select id="contactListSelect" style="flex:1">
+          <option value="">-- Load saved list --</option>
+        </select>
+        <button class="btn btn-blue" style="flex:0;padding:6px 10px;" id="loadListBtn">Load</button>
+      </div>
+      <textarea id="numbers" rows="4" placeholder="923001234567&#10;923009876543"></textarea>
+      <div style="margin-top:4px;">
+        <label style="margin:0;font-weight:normal;cursor:pointer;display:inline-block;">
+          <input type="file" id="csvImport" accept=".csv" style="display:none">
+          <span class="btn btn-gray"
+            style="display:inline-block;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;">Import
+            CSV</span>
+        </label>
+      </div>
+
+      <label style="margin-top:10px;">Message</label>
+      <div style="display:flex;gap:6px;margin-bottom:4px;">
+        <select id="templateSelect" style="flex:1">
+          <option value="">-- Load template --</option>
+        </select>
+        <button class="btn btn-blue" style="flex:0;padding:6px 10px;" id="loadTemplateBtn">Load</button>
+      </div>
+      <textarea id="message" rows="3" placeholder="Type your message..."></textarea>
+
+
+      <label style="margin-top:10px;">Random Delay Range</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="flex:1">
+          <small style="color:#888;">Min (mins)</small>
+          <div class="counter-row">
+            <button class="counter-btn" id="minDelayDec">-</button>
+            <div class="counter-display"><span id="minDelayVal">1</span></div>
+            <button class="counter-btn" id="minDelayInc">+</button>
+          </div>
+        </div>
+        <div style="padding-top:16px;color:#888;">to</div>
+        <div style="flex:1">
+          <small style="color:#888;">Max (mins)</small>
+          <div class="counter-row">
+            <button class="counter-btn" id="maxDelayDec">-</button>
+            <div class="counter-display"><span id="maxDelayVal">3</span></div>
+            <button class="counter-btn" id="maxDelayInc">+</button>
+          </div>
+        </div>
+      </div>
+
+      <label style="margin-top:10px;">Schedule Send (optional)</label>
+      <div class="schedule-row">
+        <div>
+          <small style="color:#888;">Date</small>
+          <input type="date" id="scheduleDate">
+        </div>
+        <div>
+          <small style="color:#888;">Time</small>
+          <input type="time" id="scheduleTime">
+        </div>
+        <button class="btn btn-blue" style="flex:0;padding:7px 10px;" id="scheduleBtn">Schedule</button>
+      </div>
+      <div id="scheduleStatus" style="font-size:11px;color:#075e54;margin-top:4px;"></div>
+
+      <div style="margin-top:10px;">
+        <div id="trialBanner" class="trial-banner"></div>
+        <div id="status">Ready</div>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="num sent-color" id="sentCount">0</div>
+            <div class="lbl">Sent</div>
+          </div>
+          <div class="stat-box">
+            <div class="num fail-color" id="failCount">0</div>
+            <div class="lbl">Failed</div>
+          </div>
+          <div class="stat-box">
+            <div class="num skip-color" id="skipCount">0</div>
+            <div class="lbl">Skipped</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="dailyCountDisplay">0</div>
+            <div class="lbl">Today</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-green" id="startBtn">Start Sending</button>
+        <button class="btn btn-gray" id="pauseBtn" style="display:none;">Pause</button>
+        <button class="btn btn-red" id="stopBtn" style="display:none;">Stop</button>
+      </div>
+    </div>
+
+    <!-- CONTACTS PANEL -->
+    <div class="panel" id="tab-contacts">
+      <div class="section-title">Save Number List</div>
+      <label>List Name</label>
+      <input type="text" id="listName" placeholder="e.g. Clients, Team, Group A">
+      <label style="margin-top:8px;">Phone Numbers (one per line)</label>
+      <textarea id="contactNumbers" rows="6" placeholder="923001234567&#10;923009876543&#10;923001112233"></textarea>
+      <button class="btn btn-green" style="margin-top:8px;width:100%;" id="saveListBtn">Save List</button>
+      <div class="section-title" style="margin-top:14px;">Saved Lists</div>
+      <div id="savedLists"></div>
+    </div>
+
+    <!-- TEMPLATES PANEL -->
+    <div class="panel" id="tab-templates">
+      <div class="section-title">Save New Template</div>
+      <input type="text" id="templateName" placeholder="Template name">
+      <textarea id="templateText" rows="3" placeholder="Template message..." style="margin-top:6px;"></textarea>
+      <button class="btn btn-green" style="margin-top:6px;width:100%;" id="saveTemplateBtn">Save Template</button>
+      <div class="section-title" style="margin-top:14px;">Saved Templates</div>
+      <div id="savedTemplates"></div>
+    </div>
+
+    <!-- HISTORY PANEL -->
+    <div class="panel" id="tab-history">
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <button class="btn btn-red" style="flex:1;" id="clearHistoryBtn">Clear History</button>
+        <button class="btn btn-blue" style="flex:1;" id="exportCsvBtn">Export CSV</button>
+        <button class="btn btn-gray" style="flex:1;" id="clearSentBtn">Reset Sent</button>
+      </div>
+      <div id="historyContainer" style="max-height:320px;overflow-y:auto;">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Number</th>
+              <th>Status</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div class="panel" id="tab-settings">
+      <div class="section-title">Daily Send Limit</div>
+      <input type="number" id="dailyLimit" placeholder="0 = unlimited" min="0">
+      <small style="color:#888;">Set max messages per day to avoid WhatsApp ban</small>
+
+      <div class="section-title" style="margin-top:14px;">Blacklist Numbers</div>
+      <textarea id="blacklistInput" rows="4" placeholder="One number per line..."></textarea>
+      <button class="btn btn-green" style="margin-top:6px;width:100%;" id="saveSettingsBtn">Save Settings</button>
+      <div id="settingsSaved" style="font-size:11px;color:#25d366;margin-top:4px;text-align:center;"></div>
+
+      <div class="section-title" style="margin-top:14px;">License</div>
+      <div id="licenseInfo"
+        style="font-size:12px;color:#555;margin-bottom:8px;background:white;padding:8px;border-radius:6px;border:1px solid #ddd;">
+      </div>
+      <div id="trialInfo"
+        style="font-size:12px;color:#856404;margin-bottom:8px;background:#fff3cd;padding:8px;border-radius:6px;border:1px solid #ffc107;display:none;">
+      </div>
+      <button class="btn btn-red" style="width:100%;" id="deactivateBtn">Deactivate License</button>
+    </div>
+
+  </div>
+
+  <footer>
+    Made by Zonaed &hearts;
+    <a href="https://www.thesharkweb.com" target="_blank">thesharkweb.com</a>
+  </footer>
+
+  <script src="license.js"></script>
+  <script src="popup.js"></script>
+</body>
+
+</html>
