@@ -3,9 +3,9 @@
 // ============================================================
 // SETUP INSTRUCTIONS:
 // 1. Open your Google Sheet
-// 2. Click Extensions → Apps Script
+// 2. Click Extensions -> Apps Script
 // 3. Replace everything in Code.gs with this file
-// 4. Click Deploy → New Deployment
+// 4. Click Deploy -> New Deployment
 // 5. Type: Web App
 // 6. Execute as: Me
 // 7. Who has access: Anyone

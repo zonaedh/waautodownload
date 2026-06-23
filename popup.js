@@ -613,7 +613,7 @@ document.getElementById("saveCrmUrlBtn").addEventListener("click", async () => {
   const url = document.getElementById("crmUrl").value.trim();
   if (!url) return crmStatus("Please enter a URL.", "#e53935");
   await chrome.storage.local.set({ crmUrl: url });
-  crmStatus("✓ URL saved!", "#25d366");
+  crmStatus("URL saved!", "#25d366");
   setTimeout(() => crmStatus(""), 2000);
 });
 
@@ -625,12 +625,12 @@ document.getElementById("testCrmBtn").addEventListener("click", async () => {
     const res = await fetch(url + "?action=ping");
     const json = await res.json();
     if (json.success) {
-      crmStatus("✓ " + json.message, "#25d366");
+      crmStatus("Connected: " + json.message, "#25d366");
     } else {
-      crmStatus("✗ Error: " + json.error, "#e53935");
+      crmStatus("Error: " + json.error, "#e53935");
     }
   } catch (e) {
-    crmStatus("✗ Connection failed: " + e.message, "#e53935");
+    crmStatus("Connection failed: " + e.message, "#e53935");
   }
 });
 
@@ -647,7 +647,7 @@ document.getElementById("importLeadsBtn").addEventListener("click", async () => 
   try {
     const res = await fetch(url + "?action=get_leads");
     const json = await res.json();
-    if (!json.success) return importStatus("✗ " + json.error, "#e53935");
+    if (!json.success) return importStatus("Error: " + json.error, "#e53935");
 
     const sentNumbers = data.sentNumbers || [];
     const leads = json.leads || [];
@@ -663,9 +663,9 @@ document.getElementById("importLeadsBtn").addEventListener("click", async () => 
     document.getElementById("numbers").value = phones;
     chrome.storage.local.set({ popupNumbers: phones });
     document.querySelector('[data-tab="send"]').click();
-    importStatus(`✓ Imported ${newLeads.length} leads (${leads.length - newLeads.length} already sent, skipped).`, "#25d366");
+    importStatus(`Imported ${newLeads.length} leads (${leads.length - newLeads.length} already sent, skipped).`, "#25d366");
   } catch (e) {
-    importStatus("✗ Failed: " + e.message, "#e53935");
+    importStatus("Failed: " + e.message, "#e53935");
   }
 });
 
@@ -690,11 +690,11 @@ document.getElementById("pushResultsBtn").addEventListener("click", async () => 
     });
     const json = await res.json();
     if (json.success) {
-      pushStatus(`✓ Pushed ${json.pushed} records to sheet!`, "#25d366");
+      pushStatus(`Pushed ${json.pushed} records to sheet!`, "#25d366");
     } else {
-      pushStatus("✗ " + json.error, "#e53935");
+      pushStatus("Error: " + json.error, "#e53935");
     }
   } catch (e) {
-    pushStatus("✗ Failed: " + e.message, "#e53935");
+    pushStatus("Failed: " + e.message, "#e53935");
   }
 });
