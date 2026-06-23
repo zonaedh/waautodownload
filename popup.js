@@ -445,6 +445,16 @@ document.getElementById("scheduleBtn").addEventListener("click", () => {
   });
   document.getElementById("scheduleStatus").textContent =
     "Scheduled for " + new Date(scheduleTime).toLocaleString();
+  document.getElementById("scheduleBtn").style.display = "none";
+  document.getElementById("cancelScheduleBtn").style.display = "block";
+});
+
+document.getElementById("cancelScheduleBtn").addEventListener("click", () => {
+  chrome.alarms.clear("scheduledSend");
+  chrome.storage.local.set({ running: false });
+  document.getElementById("scheduleStatus").textContent = "Schedule canceled.";
+  document.getElementById("scheduleBtn").style.display = "block";
+  document.getElementById("cancelScheduleBtn").style.display = "none";
 });
 
 // ─── PROGRESS MESSAGES ────────────────────────────────────
@@ -579,6 +589,14 @@ document.getElementById("numbers").addEventListener("input", (e) => {
 });
 document.getElementById("message").addEventListener("input", (e) => {
   chrome.storage.local.set({ popupMessage: e.target.value });
+});
+
+chrome.alarms.get("scheduledSend", (alarm) => {
+  if (alarm) {
+    document.getElementById("scheduleStatus").textContent = "Scheduled for " + new Date(alarm.scheduledTime).toLocaleString();
+    document.getElementById("scheduleBtn").style.display = "none";
+    document.getElementById("cancelScheduleBtn").style.display = "block";
+  }
 });
 
 loadContactListDropdown();
