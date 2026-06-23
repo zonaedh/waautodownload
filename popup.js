@@ -622,9 +622,10 @@ function pushStatus(msg, color = "#555") {
 }
 
 async function loadCrmTab() {
-  const data = await chrome.storage.local.get(["crmUrl", "crmAutoSync"]);
+  const data = await chrome.storage.local.get(["crmUrl", "crmAutoSync", "sheetUrl"]);
   if (data.crmUrl) document.getElementById("crmUrl").value = data.crmUrl;
   document.getElementById("autoSyncToggle").checked = !!data.crmAutoSync;
+  if (data.sheetUrl) document.getElementById("openSheetBtn").style.display = "block";
 }
 
 document.getElementById("saveCrmUrlBtn").addEventListener("click", async () => {
@@ -644,11 +645,22 @@ document.getElementById("testCrmBtn").addEventListener("click", async () => {
     const json = await res.json();
     if (json.success) {
       crmStatus("Connected: " + json.message, "#25d366");
+      if (json.sheetUrl) {
+        await chrome.storage.local.set({ sheetUrl: json.sheetUrl });
+        document.getElementById("openSheetBtn").style.display = "block";
+      }
     } else {
       crmStatus("Error: " + json.error, "#e53935");
     }
   } catch (e) {
     crmStatus("Connection failed: " + e.message, "#e53935");
+  }
+});
+
+document.getElementById("openSheetBtn").addEventListener("click", async () => {
+  const data = await chrome.storage.local.get(["sheetUrl"]);
+  if (data.sheetUrl) {
+    chrome.tabs.create({ url: data.sheetUrl });
   }
 });
 

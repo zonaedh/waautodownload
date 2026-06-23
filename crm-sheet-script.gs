@@ -28,7 +28,8 @@ function doGet(e) {
     }
 
     if (action === "ping") {
-      return jsonResponse({ success: true, message: "Connected to CRM Sheet!" });
+      const sheetUrl = SpreadsheetApp.getActiveSpreadsheet().getUrl();
+      return jsonResponse({ success: true, message: "Connected to CRM Sheet!", sheetUrl: sheetUrl });
     }
 
     return jsonResponse({ success: false, error: "Unknown action: " + action });
