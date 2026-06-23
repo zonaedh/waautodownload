@@ -139,6 +139,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
     if (btn.dataset.tab === "contacts") loadSavedLists();
     if (btn.dataset.tab === "templates") loadSavedTemplates();
     if (btn.dataset.tab === "settings") loadSettings();
+    if (btn.dataset.tab === "crm") loadCrmTab();
   });
 });
 
@@ -582,3 +583,118 @@ document.getElementById("message").addEventListener("input", (e) => {
 
 loadContactListDropdown();
 loadTemplateDropdown();
+
+// ─── CRM ─────────────────────────────────────────────────
+function crmStatus(msg, color = "#555") {
+  const el = document.getElementById("crmStatus");
+  el.textContent = msg;
+  el.style.color = color;
+}
+
+function importStatus(msg, color = "#555") {
+  const el = document.getElementById("importStatus");
+  el.textContent = msg;
+  el.style.color = color;
+}
+
+function pushStatus(msg, color = "#555") {
+  const el = document.getElementById("pushStatus");
+  el.textContent = msg;
+  el.style.color = color;
+}
+
+async function loadCrmTab() {
+  const data = await chrome.storage.local.get(["crmUrl", "crmAutoSync"]);
+  if (data.crmUrl) document.getElementById("crmUrl").value = data.crmUrl;
+  document.getElementById("autoSyncToggle").checked = !!data.crmAutoSync;
+}
+
+document.getElementById("saveCrmUrlBtn").addEventListener("click", async () => {
+  const url = document.getElementById("crmUrl").value.trim();
+  if (!url) return crmStatus("Please enter a URL.", "#e53935");
+  await chrome.storage.local.set({ crmUrl: url });
+  crmStatus("✓ URL saved!", "#25d366");
+  setTimeout(() => crmStatus(""), 2000);
+});
+
+document.getElementById("testCrmBtn").addEventListener("click", async () => {
+  const url = document.getElementById("crmUrl").value.trim();
+  if (!url) return crmStatus("Enter and save a URL first.", "#e53935");
+  crmStatus("Testing connection...", "#1976d2");
+  try {
+    const res = await fetch(url + "?action=ping");
+    const json = await res.json();
+    if (json.success) {
+      crmStatus("✓ " + json.message, "#25d366");
+    } else {
+      crmStatus("✗ Error: " + json.error, "#e53935");
+    }
+  } catch (e) {
+    crmStatus("✗ Connection failed: " + e.message, "#e53935");
+  }
+});
+
+document.getElementById("autoSyncToggle").addEventListener("change", async (e) => {
+  await chrome.storage.local.set({ crmAutoSync: e.target.checked });
+});
+
+document.getElementById("importLeadsBtn").addEventListener("click", async () => {
+  const data = await chrome.storage.local.get(["crmUrl", "sentNumbers"]);
+  const url = data.crmUrl;
+  if (!url) return importStatus("Save a CRM URL first.", "#e53935");
+
+  importStatus("Fetching leads...", "#1976d2");
+  try {
+    const res = await fetch(url + "?action=get_leads");
+    const json = await res.json();
+    if (!json.success) return importStatus("✗ " + json.error, "#e53935");
+
+    const sentNumbers = data.sentNumbers || [];
+    const leads = json.leads || [];
+
+    // Filter out already-sent numbers
+    const newLeads = leads.filter(l => !sentNumbers.includes(l.phone));
+    const phones = newLeads.map(l => l.phone).join("\n");
+
+    if (!phones) {
+      return importStatus(`All ${leads.length} leads already sent. Nothing to import.`, "#fb8c00");
+    }
+
+    document.getElementById("numbers").value = phones;
+    chrome.storage.local.set({ popupNumbers: phones });
+    document.querySelector('[data-tab="send"]').click();
+    importStatus(`✓ Imported ${newLeads.length} leads (${leads.length - newLeads.length} already sent, skipped).`, "#25d366");
+  } catch (e) {
+    importStatus("✗ Failed: " + e.message, "#e53935");
+  }
+});
+
+document.getElementById("pushResultsBtn").addEventListener("click", async () => {
+  const data = await chrome.storage.local.get(["crmUrl", "history", "message"]);
+  const url = data.crmUrl;
+  if (!url) return pushStatus("Save a CRM URL first.", "#e53935");
+
+  const history = data.history || [];
+  if (history.length === 0) return pushStatus("No session history to push.", "#fb8c00");
+
+  pushStatus(`Pushing ${history.length} records...`, "#1976d2");
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({
+        action: "push_batch",
+        results: history,
+        message: data.message || ""
+      })
+    });
+    const json = await res.json();
+    if (json.success) {
+      pushStatus(`✓ Pushed ${json.pushed} records to sheet!`, "#25d366");
+    } else {
+      pushStatus("✗ " + json.error, "#e53935");
+    }
+  } catch (e) {
+    pushStatus("✗ Failed: " + e.message, "#e53935");
+  }
+});

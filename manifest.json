@@ -6,7 +6,8 @@
   "permissions": ["tabs", "scripting", "storage", "alarms"],
   "host_permissions": [
     "https://web.whatsapp.com/*",
-    "https://firestore.googleapis.com/*"
+    "https://firestore.googleapis.com/*",
+    "https://script.google.com/*"
   ],
   "action": {
     "default_popup": "popup.html"

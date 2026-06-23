@@ -33,13 +33,17 @@ async function closeExistingWhatsAppTabs() {
 }
 
 async function logMessage(number, status) {
-  const data = await chrome.storage.local.get(["history", "sentCount", "failCount", "skipCount"]);
+  const data = await chrome.storage.local.get([
+    "history", "sentCount", "failCount", "skipCount",
+    "crmUrl", "crmAutoSync", "message"
+  ]);
   const history = data.history || [];
   let sentCount = data.sentCount || 0;
   let failCount = data.failCount || 0;
   let skipCount = data.skipCount || 0;
 
-  history.unshift({ number, status, timestamp: new Date().toISOString() });
+  const timestamp = new Date().toISOString();
+  history.unshift({ number, status, timestamp });
   if (history.length > 500) history.pop();
 
   if (status === "sent") sentCount++;
@@ -54,6 +58,25 @@ async function logMessage(number, status) {
     failCount,
     skipCount
   }).catch(() => {});
+
+  // ─── CRM AUTO-SYNC ────────────────────────────────────────
+  if (data.crmAutoSync && data.crmUrl) {
+    try {
+      await fetch(data.crmUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          action: "sync_result",
+          number,
+          status,
+          timestamp,
+          message: data.message || ""
+        })
+      });
+    } catch (e) {
+      console.log("CRM auto-sync failed:", e.message);
+    }
+  }
 }
 
 async function updateDailyCount() {
